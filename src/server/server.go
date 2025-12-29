@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"org.xyzmaps.xyztiles/src/imagery"
+	"org.xyzmaps.xyztiles/src/resources"
 )
 
 // Server represents the HTTP tile server
@@ -69,7 +70,7 @@ func (s *Server) Start() error {
 	return http.ListenAndServe(addr, s.mux)
 }
 
-// handleRoot serves the root endpoint (will be Leaflet viewer later)
+// handleRoot serves the root endpoint with embedded Leaflet viewer
 func (s *Server) handleRoot(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
 		// Try to parse as tile request
@@ -78,7 +79,14 @@ func (s *Server) handleRoot(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	fmt.Fprintf(w, `<!DOCTYPE html>
+	w.Header().Set("Cache-Control", "public, max-age=3600") // Cache viewer for 1 hour
+
+	// Serve embedded Leaflet viewer
+	if resources.HasViewerHTML() {
+		fmt.Fprint(w, resources.ViewerHTML)
+	} else {
+		// Fallback to simple HTML if viewer is not embedded
+		fmt.Fprintf(w, `<!DOCTYPE html>
 <html>
 <head>
     <title>xyztiles - Tile Server</title>
@@ -95,6 +103,7 @@ func (s *Server) handleRoot(w http.ResponseWriter, r *http.Request) {
     </ul>
 </body>
 </html>`, s.basemap.Width(), s.basemap.Height())
+	}
 }
 
 // handleTile serves tile requests from /tile/{z}/{x}/{y}.png

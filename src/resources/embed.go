@@ -10,6 +10,11 @@ import (
 //go:embed world.topo.200407.3x5400x2700.jpg
 var DefaultWorldMap []byte
 
+// ViewerHTML contains the embedded Leaflet viewer HTML
+//
+//go:embed viewer.html
+var ViewerHTML string
+
 // HasEmbeddedMap returns true if the default world map is embedded
 func HasEmbeddedMap() bool {
 	return len(DefaultWorldMap) > 0
@@ -18,4 +23,9 @@ func HasEmbeddedMap() bool {
 // DefaultMapSize returns the size of the embedded map in bytes
 func DefaultMapSize() int {
 	return len(DefaultWorldMap)
+}
+
+// HasViewerHTML returns true if the viewer HTML is embedded
+func HasViewerHTML() bool {
+	return len(ViewerHTML) > 0
 }

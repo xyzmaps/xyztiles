@@ -10,6 +10,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -171,10 +172,29 @@ func TestHandleRoot(t *testing.T) {
 		t.Errorf("Expected Content-Type text/html, got %s", contentType)
 	}
 
+	// Check Cache-Control header
+	cacheControl := resp.Header.Get("Cache-Control")
+	if cacheControl != "public, max-age=3600" {
+		t.Errorf("Expected Cache-Control 'public, max-age=3600', got %s", cacheControl)
+	}
+
 	// Check that response contains expected text
 	body := w.Body.String()
 	if len(body) == 0 {
 		t.Error("Response body is empty")
+	}
+
+	// Check for Leaflet viewer content
+	expectedStrings := []string{
+		"<!DOCTYPE html>",
+		"xyztiles",
+		"leaflet",
+	}
+
+	for _, expected := range expectedStrings {
+		if !strings.Contains(body, expected) {
+			t.Errorf("Response should contain %q", expected)
+		}
 	}
 }
 
