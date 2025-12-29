@@ -24,7 +24,7 @@ builds:
       - darwin
     ldflags:
       - -s -w
-      - -X org.xyzmaps.xyztiles/src/version.Version={{.Version}}
+      - -X org.xyzmaps.xyztiles/src/version.Version=v{{.Version}}
       - -X org.xyzmaps.xyztiles/src/version.Commit={{.Commit}}
       - -X org.xyzmaps.xyztiles/src/version.Date={{.Date}}
 
