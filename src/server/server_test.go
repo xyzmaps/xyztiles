@@ -57,6 +57,54 @@ func TestNew_InvalidImage(t *testing.T) {
 	}
 }
 
+func TestNew_EmbeddedData(t *testing.T) {
+	// Check if test image exists
+	if _, err := os.Stat(testImagePath); os.IsNotExist(err) {
+		t.Skipf("Test image not found at %s, skipping test", testImagePath)
+		return
+	}
+
+	// Read the test image into bytes (simulating embedded data)
+	data, err := os.ReadFile(testImagePath)
+	if err != nil {
+		t.Fatalf("Failed to read test image: %v", err)
+	}
+
+	cfg := Config{
+		Port:         8080,
+		EmbeddedData: data,
+	}
+
+	srv, err := New(cfg)
+	if err != nil {
+		t.Fatalf("New() with embedded data failed: %v", err)
+	}
+
+	if srv == nil {
+		t.Fatal("New() returned nil server")
+	}
+
+	if srv.basemap == nil {
+		t.Fatal("Server basemap is nil")
+	}
+
+	t.Logf("Successfully created server with embedded data (%d bytes)", len(data))
+}
+
+func TestNew_EmbeddedDataInvalidJPEG(t *testing.T) {
+	invalidData := []byte("This is not a JPEG image")
+
+	cfg := Config{
+		Port:         8080,
+		EmbeddedData: invalidData,
+	}
+
+	_, err := New(cfg)
+	if err == nil {
+		t.Error("Expected error for invalid embedded data, got nil")
+	}
+}
+
 func TestParseTilePath(t *testing.T) {
 	tests := []struct {
 		path        string

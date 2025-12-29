@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+	"org.xyzmaps.xyztiles/src/resources"
 	"org.xyzmaps.xyztiles/src/server"
 	"org.xyzmaps.xyztiles/src/version"
 )
@@ -28,22 +29,28 @@ Zero external dependencies, no hosted services required - perfect for learning w
 			os.Exit(0)
 		}
 
-		// Check if image path is provided
-		if imagePath == "" {
-			log.Fatal("Error: --image flag is required. Please provide a path to an equirectangular world map image.")
+		// Create server configuration
+		cfg := server.Config{
+			Port: port,
 		}
 
-		// Check if image file exists
-		if _, err := os.Stat(imagePath); os.IsNotExist(err) {
-			log.Fatalf("Error: Image file not found at %s", imagePath)
+		// Use embedded image or custom image path
+		if imagePath == "" {
+			// Use embedded image
+			if !resources.HasEmbeddedMap() {
+				log.Fatal("Error: No embedded map available and --image flag not provided.")
+			}
+			log.Printf("Using embedded world map (%d bytes)", resources.DefaultMapSize())
+			cfg.EmbeddedData = resources.DefaultWorldMap
+		} else {
+			// Use custom image from file
+			if _, err := os.Stat(imagePath); os.IsNotExist(err) {
+				log.Fatalf("Error: Image file not found at %s", imagePath)
+			}
+			cfg.ImagePath = imagePath
 		}
 
 		// Create and start the server
-		cfg := server.Config{
-			Port:      port,
-			ImagePath: imagePath,
-		}
-
 		srv, err := server.New(cfg)
 		if err != nil {
 			log.Fatalf("Failed to create server: %v", err)
@@ -58,7 +65,7 @@ Zero external dependencies, no hosted services required - perfect for learning w
 func init() {
 	rootCmd.Flags().BoolVarP(&versionFlag, "version", "v", false, "Print version information")
 	rootCmd.Flags().IntVarP(&port, "port", "p", 8080, "Port to run the server on")
-	rootCmd.Flags().StringVarP(&imagePath, "image", "i", "", "Path to equirectangular world map image (JPEG)")
+	rootCmd.Flags().StringVarP(&imagePath, "image", "i", "", "Path to custom equirectangular world map image (optional, uses embedded map if not specified)")
 }
 
 // Execute runs the root command

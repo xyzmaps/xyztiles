@@ -37,6 +37,46 @@ func TestLoadJPEG(t *testing.T) {
 	t.Logf("Loaded basemap: %dx%d", basemap.Width(), basemap.Height())
 }
 
+func TestLoadJPEGFromBytes(t *testing.T) {
+	// Check if test image exists
+	if _, err := os.Stat(testImagePath); os.IsNotExist(err) {
+		t.Skipf("Test image not found at %s, skipping test", testImagePath)
+		return
+	}
+
+	// Read the image file into bytes
+	data, err := os.ReadFile(testImagePath)
+	if err != nil {
+		t.Fatalf("Failed to read test image: %v", err)
+	}
+
+	// Load from bytes
+	basemap, err := LoadJPEGFromBytes(data)
+	if err != nil {
+		t.Fatalf("LoadJPEGFromBytes failed: %v", err)
+	}
+
+	if basemap == nil {
+		t.Fatal("LoadJPEGFromBytes returned nil basemap")
+	}
+
+	// Verify dimensions
+	if basemap.Width() <= 0 || basemap.Height() <= 0 {
+		t.Errorf("Invalid dimensions: %dx%d", basemap.Width(), basemap.Height())
+	}
+
+	t.Logf("Loaded basemap from bytes: %dx%d (%d bytes)", basemap.Width(), basemap.Height(), len(data))
+}
+
+func TestLoadJPEGFromBytes_InvalidData(t *testing.T) {
+	invalidData := []byte("This is not a JPEG image")
+
+	_, err := LoadJPEGFromBytes(invalidData)
+	if err == nil {
+		t.Error("Expected error for invalid JPEG data, got nil")
+	}
+}
+
 func TestLoadJPEG_InvalidPath(t *testing.T) {
 	_, err := LoadJPEG("/nonexistent/path/image.jpg")
 	if err == nil {

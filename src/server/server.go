@@ -20,19 +20,33 @@ type Server struct {
 
 // Config holds server configuration
 type Config struct {
-	Port      int
-	ImagePath string
+	Port         int
+	ImagePath    string
+	EmbeddedData []byte // Optional: embedded image data (overrides ImagePath if set)
 }
 
 // New creates a new tile server with the given configuration
 func New(cfg Config) (*Server, error) {
-	// Load the base map
-	basemap, err := imagery.LoadJPEG(cfg.ImagePath)
-	if err != nil {
-		return nil, fmt.Errorf("failed to load base map: %w", err)
+	var basemap *imagery.BaseMap
+	var err error
+	var source string
+
+	// Load from embedded data if provided, otherwise from file
+	if len(cfg.EmbeddedData) > 0 {
+		basemap, err = imagery.LoadJPEGFromBytes(cfg.EmbeddedData)
+		if err != nil {
+			return nil, fmt.Errorf("failed to load embedded base map: %w", err)
+		}
+		source = fmt.Sprintf("embedded image (%d bytes)", len(cfg.EmbeddedData))
+	} else {
+		basemap, err = imagery.LoadJPEG(cfg.ImagePath)
+		if err != nil {
+			return nil, fmt.Errorf("failed to load base map: %w", err)
+		}
+		source = cfg.ImagePath
 	}
 
-	log.Printf("Loaded base map: %dx%d pixels from %s", basemap.Width(), basemap.Height(), cfg.ImagePath)
+	log.Printf("Loaded base map: %dx%d pixels from %s", basemap.Width(), basemap.Height(), source)
 
 	s := &Server{
 		basemap: basemap,

@@ -1,6 +1,7 @@
 package imagery
 
 import (
+	"bytes"
 	"fmt"
 	"image"
 	"image/draw"
@@ -37,6 +38,26 @@ func LoadJPEG(path string) (*BaseMap, error) {
 	img, err := jpeg.Decode(f)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decode JPEG: %w", err)
+	}
+
+	bounds := img.Bounds()
+	return &BaseMap{
+		img:    img,
+		bounds: bounds,
+		width:  bounds.Dx(),
+		height: bounds.Dy(),
+	}, nil
+}
+
+// LoadJPEGFromBytes loads a JPEG image from a byte slice (e.g., embedded resource).
+// The image is expected to be in equirectangular projection (EPSG:4326)
+// covering the full world extent (-180, -90, 180, 90).
+func LoadJPEGFromBytes(data []byte) (*BaseMap, error) {
+	reader := bytes.NewReader(data)
+
+	img, err := jpeg.Decode(reader)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode JPEG from bytes: %w", err)
 	}
 
 	bounds := img.Bounds()
