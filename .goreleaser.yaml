@@ -30,10 +30,6 @@ builds:
 
 archives:
   - formats: [tar.gz]
-    name_template: >-
-      {{ .ProjectName }}_
-      {{- .Os }}_
-      {{- .Arch }}.tar.gz
 
     # use zip for windows archives
     format_overrides:
