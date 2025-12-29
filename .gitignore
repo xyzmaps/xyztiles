@@ -1,0 +1,4 @@
+org.olifinks.go-cli-template
+
+# Added by goreleaser init:
+dist/
