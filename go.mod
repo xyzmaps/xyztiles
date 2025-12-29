@@ -1,4 +1,4 @@
-module com.github.olifink.go-cli-template
+module com.github.xyzmaps.xyztiles
 
 go 1.25.5
 

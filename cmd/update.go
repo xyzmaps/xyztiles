@@ -8,7 +8,7 @@ import (
 
 	"github.com/rhysd/go-github-selfupdate/selfupdate"
 	"github.com/spf13/cobra"
-	"org.olifinks.go-cli-template/src/version"
+	"org.xyzmaps.xyztiles/src/version"
 )
 
 var (
@@ -18,7 +18,7 @@ var (
 
 var updateCmd = &cobra.Command{
 	Use:   "update",
-	Short: "Update go-cli-template to the latest version",
+	Short: "Update xyztiles to the latest version",
 	Long: `Check for the latest release on GitHub and update the binary in-place.
 The update is verified using checksums from the release.`,
 	RunE: runUpdate,
@@ -35,13 +35,13 @@ func runUpdate(cmd *cobra.Command, args []string) error {
 	fmt.Printf("Current version: %s\n", currentVersion)
 
 	// Configure selfupdate
-	latest, found, err := selfupdate.DetectLatest("olifinks/go-cli-template")
+	latest, found, err := selfupdate.DetectLatest("xyzmaps/xyztiles")
 	if err != nil {
 		return fmt.Errorf("error checking for updates: %w", err)
 	}
 
 	if !found {
-		return fmt.Errorf("no releases found for olifinks/go-cli-template")
+		return fmt.Errorf("no releases found for xyzmaps/xyztiles")
 	}
 
 	fmt.Printf("Latest version:  %s\n", latest.Version)

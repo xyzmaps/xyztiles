@@ -4,17 +4,17 @@ import (
 	"fmt"
 	"os"
 
-	"com.github.olifink.go-cli-template/src/version"
+	"com.github.xyzmaps.xyztiles/src/version"
 	"github.com/spf13/cobra"
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "go-cli-template",
-	Short: "go-cli-template - A CLI tool",
-	Long:  `go-cli-template is a CLI application for XYZ Maps`,
+	Use:   "xyztiles",
+	Short: "xyztiles - A CLI tool",
+	Long:  `xyztiles is a CLI application for XYZ Maps`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("go-cli-template")
-		fmt.Println("Run 'go-cli-template --help' for usage information")
+		fmt.Println("xyztiles")
+		fmt.Println("Run 'xyztiles --help' for usage information")
 	},
 }
 

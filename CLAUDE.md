@@ -4,9 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-go-cli-template is a Go CLI application configured for cross-platform distribution using GoReleaser.
+xyztiles is a Go CLI application configured for cross-platform distribution using GoReleaser.
 
-**Module**: `com.github.olifink.go-cli-template`
+**Module**: `com.github.xyzmaps.xyztiles`
 **Go Version**: 1.25.5
 
 ## Build and Development Commands
@@ -14,7 +14,7 @@ go-cli-template is a Go CLI application configured for cross-platform distributi
 ### Local Development
 ```bash
 # Build the application
-go build -o go-cli-template main.go
+go build -o xyztiles main.go
 
 # Run the application
 go run main.go

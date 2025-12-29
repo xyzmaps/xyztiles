@@ -1,6 +1,6 @@
 package main
 
-import "com.github.olifink.go-cli-template/cmd"
+import "com.github.xyzmaps.xyztiles/cmd"
 
 func main() {
 	cmd.Execute()
