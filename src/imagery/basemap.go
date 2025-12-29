@@ -84,9 +84,9 @@ func (bm *BaseMap) ExtractTile(z, x, y int) (*image.RGBA, error) {
 	// Extract the source region
 	sourceRegion := bm.extractRegion(pixelBounds)
 
-	// Resample to 512x512 using bilinear interpolation
+	// Resample to 512x512 using CatmullRom interpolation for better quality
 	tile := image.NewRGBA(image.Rect(0, 0, TileSize, TileSize))
-	xdraw.BiLinear.Scale(tile, tile.Bounds(), sourceRegion, sourceRegion.Bounds(), xdraw.Over, nil)
+	xdraw.CatmullRom.Scale(tile, tile.Bounds(), sourceRegion, sourceRegion.Bounds(), xdraw.Over, nil)
 
 	return tile, nil
 }
