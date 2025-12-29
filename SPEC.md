@@ -9,7 +9,7 @@ A single Go binary that serves web map tiles from an embedded or user-provided w
 ### Input Constraints (Simplified Scope)
 - Source image: EPSG:4326 (equirectangular) projection
 - Bounding box: Full world extent (-180, -90, 180, 90)
-- Format: TIFF or PNG (common image formats, no exotic GIS formats)
+- Format: TIFF or JPEG (common image formats, no exotic GIS formats)
 - Default: Embed a downscaled NASA Blue Marble (~5MB compressed)
 
 ### Output
@@ -113,7 +113,7 @@ Headers:
 
 ### Phase 1: Core Tile Generation
 - [ ] Tile coordinate math (z/x/y → lat/lon bounds)
-- [ ] Load equirectangular image (PNG/TIFF)
+- [ ] Load equirectangular image (JPEG/TIFF)
 - [ ] Extract region for tile bounds
 - [ ] Resample to 512×512 with bilinear interpolation
 - [ ] Encode as PNG
