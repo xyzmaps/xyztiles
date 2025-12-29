@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 xyztiles is a Go CLI application configured for cross-platform distribution using GoReleaser.
 
-**Module**: `com.github.xyzmaps.xyztiles`
+**Module**: `org.xyzmaps.xyztiles`
 **Go Version**: 1.25.5
 
 ## Build and Development Commands

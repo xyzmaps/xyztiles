@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"com.github.xyzmaps.xyztiles/src/version"
 	"github.com/spf13/cobra"
+	"org.xyzmaps.xyztiles/src/version"
 )
 
 var rootCmd = &cobra.Command{

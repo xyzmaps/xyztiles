@@ -1,6 +1,6 @@
 package main
 
-import "com.github.xyzmaps.xyztiles/cmd"
+import "org.xyzmaps.xyztiles/cmd"
 
 func main() {
 	cmd.Execute()

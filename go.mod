@@ -1,4 +1,4 @@
-module com.github.xyzmaps.xyztiles
+module org.xyzmaps.xyztiles
 
 go 1.25.5
 
