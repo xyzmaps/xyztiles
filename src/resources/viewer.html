@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,13 +8,11 @@
 
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-          crossorigin=""/>
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
 
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-            crossorigin=""></script>
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
     <style>
         * {
@@ -44,7 +43,7 @@
             background: white;
             padding: 15px 20px;
             border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
             z-index: 1000;
             max-width: 300px;
         }
@@ -100,10 +99,62 @@
         .leaflet-control-attribution {
             font-size: 11px;
         }
+
+        /* Debug mode styles */
+        .leaflet-tile-debug {
+            outline: 2px solid rgba(255, 0, 0, 0.8) !important;
+            outline-offset: -2px;
+        }
+
+        .tile-debug-label {
+            position: absolute;
+            top: 0;
+            left: 0;
+            background: rgba(255, 0, 0, 0.9);
+            color: white;
+            padding: 6px 10px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 11px;
+            font-weight: bold;
+            pointer-events: none;
+            z-index: 1001;
+            border-radius: 0 0 6px 0;
+            line-height: 1.4;
+            white-space: pre-wrap;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .debug-toggle {
+            position: absolute;
+            bottom: 30px;
+            right: 10px;
+            background: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            cursor: pointer;
+            font-size: 12px;
+            user-select: none;
+        }
+
+        .debug-toggle:hover {
+            background: #f0f0f0;
+        }
+
+        .debug-toggle.active {
+            background: #ff5252;
+            color: white;
+        }
     </style>
 </head>
+
 <body>
     <div id="map"></div>
+
+    <div class="debug-toggle" id="debugToggle" onclick="toggleDebug()" title="Toggle tile debug overlay">
+        🔍 Debug Mode: OFF
+    </div>
 
     <div class="info-panel" id="infoPanel">
         <button class="close-btn" onclick="toggleInfo()" title="Close">&times;</button>
@@ -130,8 +181,8 @@
 
         // Add our custom tile layer
         const tileLayer = L.tileLayer(window.location.origin + '/{z}/{x}/{y}.png', {
-            attribution: 'Tiles served by <a href="https://github.com/anthropics/claude-code">xyztiles</a> | Map data: NASA Blue Marble',
-            tileSize: 512,
+            attribution: 'Tiles served by <a href="https://github.com/xyzmaps/xyztiles">xyztiles</a> | Map data: NASA Blue Marble',
+            tileSize: 256,
             maxNativeZoom: 6,
             minZoom: 0,
             maxZoom: 10,
@@ -162,14 +213,81 @@
             metric: true
         }).addTo(map);
 
+        // Debug mode state
+        let debugMode = false;
+
         // Log tile load events for debugging
-        tileLayer.on('tileload', function(e) {
+        tileLayer.on('tileload', function (e) {
             console.log('Tile loaded:', e.coords);
+            if (debugMode) {
+                addTileDebugOverlay(e.tile, e.coords);
+            }
         });
 
-        tileLayer.on('tileerror', function(e) {
+        tileLayer.on('tileerror', function (e) {
             console.error('Tile error:', e.coords, e.error);
         });
+
+        // Add debug overlay to tiles
+        function addTileDebugOverlay(tile, coords) {
+            // Add debug class for red outline
+            tile.classList.add('leaflet-tile-debug');
+
+            // Create label element
+            const label = document.createElement('div');
+            label.className = 'tile-debug-label';
+            label.textContent = `${coords.z}/${coords.x}/${coords.y}.png\nz:${coords.z} x:${coords.x} y:${coords.y}`;
+
+            // Get the tile's container and make it relative positioned
+            const container = tile.parentElement;
+            container.style.position = 'relative';
+
+            // Remove any existing label in this container
+            const existingLabel = container.querySelector('.tile-debug-label');
+            if (existingLabel) {
+                existingLabel.remove();
+            }
+
+            // Add the label to the container
+            container.appendChild(label);
+        }
+
+        // Remove debug overlays from all tiles
+        function removeAllDebugOverlays() {
+            document.querySelectorAll('.leaflet-tile-debug').forEach(tile => {
+                tile.classList.remove('leaflet-tile-debug');
+            });
+            document.querySelectorAll('.tile-debug-label').forEach(label => {
+                label.remove();
+            });
+        }
+
+        // Toggle debug mode
+        function toggleDebug() {
+            debugMode = !debugMode;
+            const toggleBtn = document.getElementById('debugToggle');
+
+            if (debugMode) {
+                toggleBtn.textContent = '🔍 Debug Mode: ON';
+                toggleBtn.classList.add('active');
+                console.log('%cDebug mode enabled - tile coordinates will be shown on map', 'color: #ff5252; font-weight: bold;');
+
+                // Add overlays to existing tiles
+                document.querySelectorAll('.leaflet-tile-loaded').forEach(tile => {
+                    // Extract coordinates from tile URL
+                    const match = tile.src.match(/\/(\d+)\/(\d+)\/(\d+)\.png/);
+                    if (match) {
+                        const coords = { z: match[1], x: match[2], y: match[3] };
+                        addTileDebugOverlay(tile, coords);
+                    }
+                });
+            } else {
+                toggleBtn.textContent = '🔍 Debug Mode: OFF';
+                toggleBtn.classList.remove('active');
+                console.log('%cDebug mode disabled', 'color: #999; font-weight: bold;');
+                removeAllDebugOverlays();
+            }
+        }
 
         // Auto-hide info panel after 10 seconds
         setTimeout(() => {
@@ -177,8 +295,17 @@
             panel.style.opacity = '0.9';
         }, 10000);
 
+        // Keyboard shortcut: Press 'd' to toggle debug mode
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'd' || e.key === 'D') {
+                toggleDebug();
+            }
+        });
+
         console.log('%cxyztiles viewer loaded successfully', 'color: #4CAF50; font-weight: bold; font-size: 14px;');
         console.log('Tile endpoint:', window.location.origin + '/{z}/{x}/{y}.png');
+        console.log('%cPress "D" key or click the debug button to show tile coordinates', 'color: #ff5252; font-weight: bold;');
     </script>
 </body>
+
 </html>
