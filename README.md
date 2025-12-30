@@ -15,7 +15,7 @@
 - 📦 **Single Binary** - 13MB standalone executable (includes map + viewer)
 - 🎨 **Custom Images** - Support for your own equirectangular JPEG images
 - ⚡ **On-Demand Tile Generation** - Tiles created in real-time with CatmullRom interpolation
-- 🔧 **Standard XYZ Tiles** - Compatible with XYZ tile and tools like OpenStreetMap, Leaflet, and other web mapping libraries
+- 🔧 **Standard XYZ Tiles** - Compatible with XYZmaps and tools like OpenStreetMap, Leaflet, and other web mapping libraries
 
 ## Quick Start
 
