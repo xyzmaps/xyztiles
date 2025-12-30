@@ -174,7 +174,7 @@
         const map = L.map('map', {
             center: [20, 0],
             zoom: 2,
-            minZoom: 0,
+            minZoom: 1,
             maxZoom: 10,
             zoomControl: true
         });
@@ -182,7 +182,9 @@
         // Add our custom tile layer
         const tileLayer = L.tileLayer(window.location.origin + '/{z}/{x}/{y}.png', {
             attribution: 'Tiles served by <a href="https://github.com/xyzmaps/xyztiles">xyztiles</a> | Map data: NASA Blue Marble',
-            tileSize: 256,
+            tileSize: 512,
+            zoomOffset: -1,
+            minZoom: 1,
             maxNativeZoom: 6,
             minZoom: 0,
             maxZoom: 10,
