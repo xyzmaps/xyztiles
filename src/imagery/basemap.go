@@ -8,8 +8,8 @@ import (
 	"image/jpeg"
 	"os"
 
-	"org.xyzmaps.xyztiles/src/tilemath"
 	xdraw "golang.org/x/image/draw"
+	"org.xyzmaps.xyztiles/src/tilemath"
 )
 
 // BaseMap represents a loaded equirectangular world map image
@@ -81,12 +81,56 @@ func (bm *BaseMap) ExtractTile(z, x, y int) (*image.RGBA, error) {
 	// Convert geographic bounds to pixel bounds in the source image
 	pixelBounds := bm.geoBoundsToPixelBounds(tileBounds)
 
-	// Extract the source region
-	sourceRegion := bm.extractRegion(pixelBounds)
+	// Add padding to source region for better edge interpolation
+	// CatmullRom uses 4-pixel kernel, so we need at least 2 pixels padding
+	const padding = 4
+	paddedBounds := image.Rectangle{
+		Min: image.Point{
+			X: clamp(pixelBounds.Min.X-padding, 0, bm.width),
+			Y: clamp(pixelBounds.Min.Y-padding, 0, bm.height),
+		},
+		Max: image.Point{
+			X: clamp(pixelBounds.Max.X+padding, 0, bm.width),
+			Y: clamp(pixelBounds.Max.Y+padding, 0, bm.height),
+		},
+	}
 
-	// Resample to 512x512 using CatmullRom interpolation for better quality
+	// Extract the padded source region
+	sourceRegion := bm.extractRegion(paddedBounds)
+
+	// Calculate the scale factor to determine oversample size
+	sourceWidth := pixelBounds.Dx()
+	sourceHeight := pixelBounds.Dy()
+	if sourceWidth == 0 || sourceHeight == 0 {
+		sourceWidth = 1
+		sourceHeight = 1
+	}
+	// Create output tile
 	tile := image.NewRGBA(image.Rect(0, 0, TileSize, TileSize))
-	xdraw.CatmullRom.Scale(tile, tile.Bounds(), sourceRegion, sourceRegion.Bounds(), xdraw.Over, nil)
+
+	// Calculate padding in output space proportional to source padding
+	paddingLeft := float64(pixelBounds.Min.X-paddedBounds.Min.X) / float64(sourceWidth) * TileSize
+	paddingRight := float64(paddedBounds.Max.X-pixelBounds.Max.X) / float64(sourceWidth) * TileSize
+	paddingTop := float64(pixelBounds.Min.Y-paddedBounds.Min.Y) / float64(sourceHeight) * TileSize
+	paddingBottom := float64(paddedBounds.Max.Y-pixelBounds.Max.Y) / float64(sourceHeight) * TileSize
+	// Resample directly from sourceRegion to tile.
+	// We specify pixelBounds as the source rectangle, but sourceRegion contains
+	// the padded data. The interpolator will read the surrounding pixels from
+	// sourceRegion to generate valid edge pixels without fading.
+	xdraw.CatmullRom.Scale(tile, tile.Bounds(), sourceRegion, pixelBounds, xdraw.Over, nil)
+
+	oversampleWidth := int(paddingLeft + float64(TileSize) + paddingRight + 0.5)
+	oversampleHeight := int(paddingTop + float64(TileSize) + paddingBottom + 0.5)
+
+	// Resample to oversampled size using CatmullRom interpolation
+	oversampled := image.NewRGBA(image.Rect(0, 0, oversampleWidth, oversampleHeight))
+	xdraw.CatmullRom.Scale(oversampled, oversampled.Bounds(), sourceRegion, sourceRegion.Bounds(), xdraw.Over, nil)
+
+	// Crop to final tile size
+	cropX := int(paddingLeft + 0.5)
+	cropY := int(paddingTop + 0.5)
+	tile := image.NewRGBA(image.Rect(0, 0, TileSize, TileSize))
+	draw.Draw(tile, tile.Bounds(), oversampled, image.Point{X: cropX, Y: cropY}, draw.Src)
 
 	return tile, nil
 }
@@ -94,8 +138,9 @@ func (bm *BaseMap) ExtractTile(z, x, y int) (*image.RGBA, error) {
 // geoBoundsToPixelBounds converts geographic bounds (lat/lon) to pixel bounds
 // in the equirectangular source image.
 // For equirectangular projection covering full world extent:
-//   pixel_x = (lon + 180) / 360 * image_width
-//   pixel_y = (90 - lat) / 180 * image_height
+//
+//	pixel_x = (lon + 180) / 360 * image_width
+//	pixel_y = (90 - lat) / 180 * image_height
 func (bm *BaseMap) geoBoundsToPixelBounds(geo tilemath.Bounds) image.Rectangle {
 	// Convert west/east longitude to x coordinates
 	x0 := lonToPixelX(geo.West, bm.width)
