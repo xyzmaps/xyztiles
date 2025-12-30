@@ -133,8 +133,11 @@ func (s *Server) handleTileRequest(w http.ResponseWriter, r *http.Request, path 
 	w.Header().Set("Content-Type", "image/png")
 	w.Header().Set("Cache-Control", "public, max-age=86400") // 24 hours
 
-	// Encode as PNG
-	if err := png.Encode(w, tile); err != nil {
+	// Encode as 24-bit PNG (no alpha channel) with best compression
+	encoder := &png.Encoder{
+		CompressionLevel: png.BestCompression,
+	}
+	if err := encoder.Encode(w, tile); err != nil {
 		log.Printf("Error encoding tile %d/%d/%d: %v", z, x, y, err)
 		http.Error(w, "Failed to encode tile", http.StatusInternalServerError)
 		return

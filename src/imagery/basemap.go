@@ -70,8 +70,8 @@ func LoadJPEGFromBytes(data []byte) (*BaseMap, error) {
 }
 
 // ExtractTile extracts and resamples a tile region from the base map.
-// Returns a 512x512 RGBA image containing the tile at the given XYZ coordinates.
-func (bm *BaseMap) ExtractTile(z, x, y int) (*image.RGBA, error) {
+// Returns a 512x512 RGB image (no alpha) containing the tile at the given XYZ coordinates.
+func (bm *BaseMap) ExtractTile(z, x, y int) (image.Image, error) {
 	// Get geographic bounds of the tile
 	tileBounds, err := tilemath.TileBounds(z, x, y)
 	if err != nil {
@@ -98,16 +98,20 @@ func (bm *BaseMap) ExtractTile(z, x, y int) (*image.RGBA, error) {
 	// Extract the padded source region
 	sourceRegion := bm.extractRegion(paddedBounds)
 
-	// Create output tile
-	tile := image.NewRGBA(image.Rect(0, 0, TileSize, TileSize))
+	// Create output tile as NRGBA (we'll convert to RGB for PNG encoding)
+	tile := image.NewNRGBA(image.Rect(0, 0, TileSize, TileSize))
 
 	// Resample directly from sourceRegion to tile.
 	// We specify pixelBounds as the source rectangle, but sourceRegion contains
 	// the padded data. The interpolator will read the surrounding pixels from
 	// sourceRegion to generate valid edge pixels without fading.
-	xdraw.CatmullRom.Scale(tile, tile.Bounds(), sourceRegion, pixelBounds, xdraw.Over, nil)
+	xdraw.CatmullRom.Scale(tile, tile.Bounds(), sourceRegion, pixelBounds, xdraw.Src, nil)
 
-	return tile, nil
+	// Convert to RGB (no alpha channel) for 24-bit PNG output
+	rgb := image.NewRGBA(image.Rect(0, 0, TileSize, TileSize))
+	draw.Draw(rgb, rgb.Bounds(), tile, image.Point{}, draw.Src)
+
+	return rgb, nil
 }
 
 // geoBoundsToPixelBounds converts geographic bounds (lat/lon) to pixel bounds
