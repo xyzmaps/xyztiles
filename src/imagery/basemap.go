@@ -98,39 +98,14 @@ func (bm *BaseMap) ExtractTile(z, x, y int) (*image.RGBA, error) {
 	// Extract the padded source region
 	sourceRegion := bm.extractRegion(paddedBounds)
 
-	// Calculate the scale factor to determine oversample size
-	sourceWidth := pixelBounds.Dx()
-	sourceHeight := pixelBounds.Dy()
-	if sourceWidth == 0 || sourceHeight == 0 {
-		sourceWidth = 1
-		sourceHeight = 1
-	}
 	// Create output tile
 	tile := image.NewRGBA(image.Rect(0, 0, TileSize, TileSize))
 
-	// Calculate padding in output space proportional to source padding
-	paddingLeft := float64(pixelBounds.Min.X-paddedBounds.Min.X) / float64(sourceWidth) * TileSize
-	paddingRight := float64(paddedBounds.Max.X-pixelBounds.Max.X) / float64(sourceWidth) * TileSize
-	paddingTop := float64(pixelBounds.Min.Y-paddedBounds.Min.Y) / float64(sourceHeight) * TileSize
-	paddingBottom := float64(paddedBounds.Max.Y-pixelBounds.Max.Y) / float64(sourceHeight) * TileSize
 	// Resample directly from sourceRegion to tile.
 	// We specify pixelBounds as the source rectangle, but sourceRegion contains
 	// the padded data. The interpolator will read the surrounding pixels from
 	// sourceRegion to generate valid edge pixels without fading.
 	xdraw.CatmullRom.Scale(tile, tile.Bounds(), sourceRegion, pixelBounds, xdraw.Over, nil)
-
-	oversampleWidth := int(paddingLeft + float64(TileSize) + paddingRight + 0.5)
-	oversampleHeight := int(paddingTop + float64(TileSize) + paddingBottom + 0.5)
-
-	// Resample to oversampled size using CatmullRom interpolation
-	oversampled := image.NewRGBA(image.Rect(0, 0, oversampleWidth, oversampleHeight))
-	xdraw.CatmullRom.Scale(oversampled, oversampled.Bounds(), sourceRegion, sourceRegion.Bounds(), xdraw.Over, nil)
-
-	// Crop to final tile size
-	cropX := int(paddingLeft + 0.5)
-	cropY := int(paddingTop + 0.5)
-	tile := image.NewRGBA(image.Rect(0, 0, TileSize, TileSize))
-	draw.Draw(tile, tile.Bounds(), oversampled, image.Point{X: cropX, Y: cropY}, draw.Src)
 
 	return tile, nil
 }
