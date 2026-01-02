@@ -125,7 +125,9 @@ const map = L.map('map').setView([20, 0], 2);
 
 L.tileLayer('http://localhost:8080/{z}/{x}/{y}.png', {
     attribution: 'xyztiles',
-    tileSize: 256,
+    tileSize: 256, 
+    // 256 makes 512 tiles crisp on highres/retina, but 
+    // you can also use 512 and adjust the zoom level with an offset
     maxNativeZoom: 6,
     maxZoom: 10
 }).addTo(map);
@@ -271,10 +273,9 @@ The project follows clean architecture principles:
 
 ## Roadmap
 
-- [ ] Tile oversampling (address pixel fading at tile boundary)
-- [ ] CORS configuration
-- [ ] Tile export to disk (MBTiles format)
 - [ ] PNG and TIFF input support
+- [ ] CORS configuration
+- [ ] Tile export to disk (directory, MBTiles. PMTiles)
 - [ ] Docker image
 - [ ] Prometheus metrics endpoint
 - [ ] In-memory LRU tile cache
